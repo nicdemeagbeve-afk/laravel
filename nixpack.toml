@@ -1,0 +1,5 @@
+[build]
+cmd = "npm install && npm run build && php artisan storage:link"
+
+[start]
+cmd = "php artisan serve --host=0.0.0.0 --port=$PORT"
