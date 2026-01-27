@@ -2,9 +2,10 @@
 FROM node:20-alpine as node-builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
-COPY resources ./resources
 COPY vite.config.js ./
+COPY resources ./resources
+COPY public ./public
+RUN npm ci
 RUN npm run build
 
 # PHP stage
@@ -29,23 +30,18 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy application files (excluding .env)
 COPY --exclude=.env . .
 
+# Copy built assets from node stage (overwrite with fresh build)
+COPY --from=node-builder /app/public/build ./public/build
+
 # Create .env file for build from example
 RUN cp .env.example .env
-
-# Copy built assets from node stage
-COPY --from=node-builder /app/public/build ./public/build
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set permissions
+# Set proper permissions first
 RUN chown -R www-data:www-data /app && \
     chmod -R 755 /app/storage /app/bootstrap/cache
-
-# Generate key and cache
-RUN php artisan key:generate --force && \
-    php artisan config:cache && \
-    php artisan route:cache
 
 EXPOSE 8000
 
