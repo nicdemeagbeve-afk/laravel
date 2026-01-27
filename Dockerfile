@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     unzip \
     mysql-client \
+    netcat-openbsd \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
     pdo_mysql \
@@ -25,79 +26,99 @@ RUN apt-get update && apt-get install -y \
 # Configurer PHP pour production
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-# Optimiser PHP-FPM config
-RUN echo '[www]\nuser = www-data\ngroup = www-data\nlisten = 0.0.0.0:9000\npm.max_children = 20\npm.start_servers = 5\npm.min_spare_servers = 5\npm.max_spare_servers = 10\npm.max_requests = 1000' > /usr/local/etc/php-fpm.d/www.conf
+# Optimiser PHP pour logs visibles
+RUN echo "error_reporting = E_ALL\ndisplay_errors = On\nlog_errors = On\nerror_log = /var/log/php-error.log" >> "$PHP_INI_DIR/php.ini"
+
+# Configurer PHP-FPM
+RUN echo '[www]\nuser = www-data\ngroup = www-data\nlisten = 0.0.0.0:9000\npm.max_children = 20\npm.start_servers = 5\npm.min_spare_servers = 5\npm.max_spare_servers = 10\npm.max_requests = 1000\ncatch_workers_output = yes' > /usr/local/etc/php-fpm.d/www.conf
 
 # Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copier les fichiers de l'application
+# Copier les fichiers
 COPY . .
 
 # Installer les dépendances PHP
-RUN composer install --no-dev --optimize-autoloader && \
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist && \
     composer dump-autoload --optimize
 
-# Créer le répertoire pour les logs
-RUN mkdir -p /app/storage/logs && \
-    chown -R www-data:www-data /app/storage /app/bootstrap/cache && \
+# Créer les répertoires nécessaires
+RUN mkdir -p /app/storage/logs /app/bootstrap/cache && \
+    chown -R www-data:www-data /app && \
+    chmod -R 755 /app && \
     chmod -R 777 /app/storage /app/bootstrap/cache
 
-# Créer le script d'initialisation avec meilleur diagnostic
-RUN cat > /usr/local/bin/entrypoint.sh << 'EOF'
+# Créer le script de démarrage avec diagnostic
+RUN cat > /usr/local/bin/entrypoint.sh << 'ENTRYEOF'
 #!/bin/bash
 set -e
 
-echo "========================================="
-echo "Laravel Docker Container Initialization"
-echo "========================================="
+echo "======================================"
+echo "Laravel Container - Starting..."
+echo "======================================"
+echo "PHP Version: $(php -v)"
+echo "Working Directory: $(pwd)"
+echo "Files:"
+ls -la /app | head -20
 
-# Attendre la base de données avec timeout
-echo "Waiting for database..."
-for i in {1..30}; do
+# Attendre la DB
+echo ""
+echo "Waiting for database on db:3306..."
+for i in {1..60}; do
     if nc -z db 3306 2>/dev/null; then
-        echo "Database is ready!"
+        echo "✓ Database is ready!"
         break
     fi
-    echo "Waiting... attempt $i/30"
-    sleep 2
+    echo "  Attempt $i/60..."
+    sleep 1
 done
 
-# Nettoyer les caches Laravel
-echo "Clearing Laravel caches..."
+# Vérifier la connexion
+echo ""
+echo "Testing database connection..."
+php -r "
+try {
+    \$pdo = new PDO('mysql:host=db;port=3306', 'laravel', 'password');
+    echo '✓ MySQL connection OK\n';
+} catch (\Exception \$e) {
+    echo '✗ MySQL Error: ' . \$e->getMessage() . '\n';
+    exit(1);
+}
+"
+
+echo ""
+echo "Clearing caches..."
 php artisan config:clear 2>&1 || true
 php artisan cache:clear 2>&1 || true
 php artisan route:clear 2>&1 || true
 php artisan view:clear 2>&1 || true
 
-# Générer la clé d'application si absent
-echo "Checking app key..."
+echo "Generating APP_KEY..."
 php artisan key:generate --force 2>&1 || true
 
-# Exécuter les migrations
-echo "Running database migrations..."
+echo "Running migrations..."
 php artisan migrate --force 2>&1 || true
 
-# Configurer les permissions finales
+echo "Caching configuration..."
+php artisan config:cache 2>&1 || true
+
 echo "Setting permissions..."
 chown -R www-data:www-data /app
 chmod -R 777 /app/storage /app/bootstrap/cache
 
-# Vérifier la configuration
-echo "Checking configuration..."
-php artisan config:cache 2>&1 || true
+echo ""
+echo "======================================"
+echo "Container is ready - PHP-FPM starting"
+echo "======================================"
+echo ""
 
-echo "========================================="
-echo "Container ready. Starting PHP-FPM..."
-echo "========================================="
+# Afficher les logs
+tail -f /var/log/php-error.log &
 
 # Démarrer PHP-FPM en foreground
-exec php-fpm --nodaemonize
-EOF
+exec php-fpm --nodaemonize --fpm-config /usr/local/etc/php-fpm.d/www.conf
+ENTRYEOF
 chmod +x /usr/local/bin/entrypoint.sh
-
-# Installer netcat pour health checks
-RUN apt-get update && apt-get install -y netcat-openbsd && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 9000
 

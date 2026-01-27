@@ -9,7 +9,8 @@ class Reparation extends Model
 {
     use HasFactory;
 
-    // Cette liste doit correspondre EXACTEMENT aux colonnes de votre migration
+    protected $table = 'reparations';
+
     protected $fillable = [
         'vehicule_id',
         'technicien_id',
@@ -19,10 +20,9 @@ class Reparation extends Model
         'cout'
     ];
 
-    // Relations (Utile pour afficher le nom du technicien plus tard)
     public function vehicule()
     {
-        return $this->belongsTo(vehicule::class);
+        return $this->belongsTo(Vehicule::class);
     }
 
     public function technicien()

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Vehicule extends Model
 {
-    // Indique les colonnes que Laravel a le droit de modifier via un formulaire
+    protected $table = 'vehicules';
     protected $fillable = [
         'immatriculation',
         'marque',
@@ -18,8 +18,4 @@ class Vehicule extends Model
         'energie',
         'boite',
     ];
-
-    // Si ta table ne respecte pas le pluriel anglais (vehicles), 
-    // il est plus sûr d'ajouter cette ligne :
-    // protected $table = 'vehicules';
 }
