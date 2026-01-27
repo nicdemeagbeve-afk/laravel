@@ -26,8 +26,11 @@ WORKDIR /app
 # Copy Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy application files
-COPY . .
+# Copy application files (excluding .env)
+COPY --exclude=.env . .
+
+# Create .env file for build from example
+RUN cp .env.example .env
 
 # Copy built assets from node stage
 COPY --from=node-builder /app/public/build ./public/build
