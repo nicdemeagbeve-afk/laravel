@@ -12,7 +12,7 @@
 
 
 
-
+   <link rel="stylesheet" href="public/build/assets/app-DVr7o2Xq.css">
 
 
         <!-- Styles / Scripts -->

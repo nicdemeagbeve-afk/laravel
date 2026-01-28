@@ -1,21 +1,5 @@
 ############################
-# 1️⃣ VITE BUILD
-############################
-FROM node:20-alpine AS node
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm install
-
-COPY resources ./resources
-COPY vite.config.js ./
-
-RUN npm run build
-
-
-############################
-# 2️⃣ LARAVEL + NGINX
+# LARAVEL + NGINX
 ############################
 FROM php:8.4-fpm
 
@@ -51,9 +35,6 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # App
 COPY . .
-
-# Inject Vite build
-COPY --from=node /app/public/build ./public/build
 
 # PHP deps
 RUN composer install --no-dev --optimize-autoloader --no-interaction
