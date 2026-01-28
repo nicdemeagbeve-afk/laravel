@@ -10,13 +10,8 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
-
-
-   <link rel="stylesheet" href="public/build/assets/app-DVr7o2Xq.css">
-
-
-        <!-- Styles / Scripts -->
-            @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <!-- Styles -->
+        <link rel="stylesheet" href="/build/assets/app-y8HVgpmj.css">
 
     </head>
     <body class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-[#1b1b18] flex p-6 lg:p-8 items-center lg:justify-center min-h-screen flex-col">
@@ -274,5 +269,5 @@
             <div class="h-14.5 hidden lg:block"></div>
         @endif
     </body>
-    <script type="module" src="/build/assets/app-DIuewKhF.js"></script>
+    <script type="module" src="/build/assets/app-DPtiIrM_.js"></script>
 </html>
