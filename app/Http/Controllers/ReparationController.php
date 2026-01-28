@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Reparation; 
 use App\Models\Technicien; 
-use App\Models\vehicule;   // Vérifiez bien si c'est 'vehicule' ou 'Vehicule' selon votre fichier dans Models/
+use App\Models\Vehicule;   // Vérifiez bien si c'est 'vehicule' ou 'Vehicule' selon votre fichier dans Models/
 use Illuminate\Http\Request;
 
 class ReparationController extends Controller
@@ -26,7 +26,7 @@ class ReparationController extends Controller
     public function create()
     {
         $techniciens = Technicien::all();
-        $vehicules = vehicule::all(); 
+        $vehicules = Vehicule::all(); 
 
         return view('reparations.create', compact('techniciens', 'vehicules'));
     }
@@ -64,7 +64,7 @@ class ReparationController extends Controller
     public function edit(Reparation $reparation)
     {
         $techniciens = Technicien::all();
-        $vehicules = vehicule::all(); 
+        $vehicules = Vehicule::all(); 
         
         return view('reparations.edit', compact('reparation', 'techniciens', 'vehicules'));
     }
