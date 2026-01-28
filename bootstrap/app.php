@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Force HTTPS en production
+        if (env('FORCE_HTTPS')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
