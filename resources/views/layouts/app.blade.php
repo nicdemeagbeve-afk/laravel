@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ config('app.name', 'Garage') }} | Management System</title>
     
+
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
+
+    {{-- Vite : CSS + JS compilés --}}
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     
     <style>
         body {
@@ -128,5 +131,5 @@
         </p>
     </footer>
 
-</body>
+</body class="animated-bg min-h-screen text-slate-200">
 </html>
