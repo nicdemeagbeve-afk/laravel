@@ -21,7 +21,6 @@ FROM php:8.4-fpm
 
 WORKDIR /app
 
-# System deps
 RUN apt-get update && apt-get install -y \
     nginx \
     supervisor \
@@ -32,7 +31,7 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     libzip-dev \
-    libmysqlclient-dev \
+    libmariadb-dev \
     netcat-openbsd \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
@@ -42,6 +41,7 @@ RUN apt-get update && apt-get install -y \
         zip \
         opcache \
     && rm -rf /var/lib/apt/lists/*
+
 
 # PHP prod
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
