@@ -3,23 +3,26 @@ set -e
 
 echo "🚀 Laravel starting..."
 
-# Wait DB
+# --- Ensure .env exists (required by Laravel)
+[ -f /app/.env ] || touch /app/.env
+
+# --- Wait for DB
+echo "⏳ Waiting for database..."
 for i in {1..30}; do
-  nc -z ${DB_HOST:-db} ${DB_PORT:-3306} && break
+  nc -z "${DB_HOST}" "${DB_PORT:-3306}" && break
   sleep 2
 done
 
-php artisan key:generate --force || true
+# --- Laravel
 php artisan migrate --force || true
-php artisan config:clear || true
-php artisan config:cache || true
+php artisan config:clear
+php artisan config:cache
 
+# --- Permissions
 chown -R www-data:www-data /app
 chmod -R 775 storage bootstrap/cache
 
-
-# Check Nginx configuration
-nginx -t || (cat /var/log/nginx/error.log && exit 1)
+# --- Nginx
+nginx -t || exit 1
 
 exec /usr/bin/supervisord
-
