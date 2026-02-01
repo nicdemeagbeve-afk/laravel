@@ -11,6 +11,8 @@
     {{-- Vite : CSS + JS compilés --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <link rel="stylesheet" href="/build/assets/app-M8nFpnA7.css">
+
     
     <style>
         body {
@@ -132,4 +134,5 @@
     </footer>
 
 </body class="animated-bg min-h-screen text-slate-200">
+<link rel="stylesheet" href="/build/assets/app-DIuewKhF.js">
 </html>
